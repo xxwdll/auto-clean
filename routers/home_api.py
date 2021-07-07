@@ -6,7 +6,7 @@ from lib.schemas import AuthDetails
 from lib.models import AlarmInfo, App, Script
 from lib.database import create_session
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, extract
 from sqlalchemy.sql import and_, or_
 from datetime import datetime,timedelta
 import calendar
@@ -116,34 +116,35 @@ async def get_home_charts_month(username=Depends(auth_handler.auth_wrapper),
                       'meta': { 'msg': 'Get charts', 
                                 'status': 200 }}
     now_time = datetime.utcnow()
-    time = now_time + timedelta(hours=8)
-    now_month  = int(time.strftime("%m"))
-    now_year   = int(time.strftime("%Y"))
+    now_time = now_time + timedelta(hours=8)
+    now_month  = int(now_time.strftime("%m"))
+    last_month = now_month - 1
+    now_year   = int(now_time.strftime("%Y"))
     total_days = calendar.monthrange(now_year, now_month)[1]
-    days_count  = []
-    if now_month < 10:
-        now_month = '0' + str(now_month)
-    for i in range(total_days):
-        today = i + 1
-        if today < 10:
-            today = '0' + str(today)
-        today = '%' + str(now_year) + '-' + str(now_month) + '-' + str(today) + '%'
+    days_range = 7
+    days_list  = []
+
+    for i in range(days_range):
+        today = str(now_time - timedelta(days=days_range-i-1))
+        today = str(today).split()[0]
+        days_list.append(today)
+    days_count = []
+    xAxis_data  = []
+    series_data = []
+    for i in days_list:
+        day = str(i).split('-')
+        day = day[1] + '-' + day[2]
+        xAxis_data.append(day + '日')
+        today = '%' + i + '%'
         try:
             count = db.query(func.count(AlarmInfo.id))\
                       .filter(AlarmInfo.start_time.like(today))\
                       .scalar()
-            days_count.append(count)
+            series_data.append(count)
         except Exception as e:
             response_info['meta'] = {'msg': str(e), 'status': 400 }
             return response_info
-    title = '次数统计 ' + str(now_month) + ' 月'
-    xAxis_data  = []
-    series_data = []
-    today       = 0
-    for i in days_count:
-        today = today + 1
-        xAxis_data.append(str(today) + '日')
-        series_data.append(str(i))
+    title = '近七日次数统计'
     response_info['data'] = {
                                 'title': title,
                                 'xAxis_data': xAxis_data,
