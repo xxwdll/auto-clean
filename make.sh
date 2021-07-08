@@ -5,8 +5,9 @@ cd auo-clean
 
 start_time=`date +%s`
 
-curl -o Dockerfile -s "https://gitee.com/w_dll/auto-clean/raw/master/Dockerfile"
-docker build -t autoclean:$start_time .
+#curl -o Dockerfile -s "https://gitee.com/w_dll/auto-clean/raw/master/Dockerfile"
+#docker build -t autoclean:$start_time .
+docker build "https://gitee.com/w_dll/auto-clean/raw/master/Dockerfile" -t autoclean:$start_time
 [ $? -ne 0 ] && echo 'docker build error!' && exit 1
 
 echo 'docker build done!'
