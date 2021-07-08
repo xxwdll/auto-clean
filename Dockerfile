@@ -9,9 +9,7 @@ RUN apk add --no-cache git python3-dev openssl-dev libffi-dev gcc g++ musl-dev &
 
 ENV app /app/
 WORKDIR ${app}
-RUN git clone https://gitee.com/w_dll/auto-clean.git
-
-WORKDIR auto-clean
+RUN git clone https://gitee.com/w_dll/auto-clean.git ${app}
 
 EXPOSE 5000
 CMD ["python3", "main.py"]
